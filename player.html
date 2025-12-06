@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Music Player</title>
+
+<style>
+body{
+    background:#0d0d0d; color:white; font-family:Poppins;
+    text-align:center; padding:25px;
+}
+
+#albumArt{
+    width:260px; height:260px;
+    border-radius:20px; margin:10px auto;
+    object-fit:cover; display:block;
+    animation:rotate 6s linear infinite paused;
+}
+.playing{ animation-play-state:running; }
+
+@keyframes rotate{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
+.song-list button{
+    width:95%; padding:12px; margin:6px 0;
+    background:#1e1e1e; border:none; border-radius:8px;
+    color:white; cursor:pointer; transition:.3s;
+}
+.song-list button.active{ background:#ff4b4b; }
+
+.controls{
+    margin:15px 0; display:flex; justify-content:center; gap:20px;
+}
+.controls button{
+    background:#ff4b4b; border:none; color:white;
+    padding:12px 18px; border-radius:50%; cursor:pointer;
+}
+
+input[type=range]{
+     width:90%;
+     }
+
+@media(max-width:600px){
+    #albumArt{ width:200px; height:200px; }
+}
+</style>
+</head>
+<body>
+
+<h2 id="albumTitle"></h2>
+<img id="albumArt">
+
+<div class="song-list" id="songList"></div>
+
+<br>
+
+<audio id="player"></audio>
+
+<div class="controls">
+    <button onclick="prevSong()">⏮</button>
+    <button onclick="togglePlay()" id="ppBtn">▶</button>
+    <button onclick="nextSong()">⏭</button>
+</div>
+
+<input type="range" id="progress" value="0">
+<br><br>
+Volume <input type="range" id="volume" min="0" max="1" step=".1" value="1">
+
+<script>
+const params = new URLSearchParams(location.search);
+const album = params.get("album");
+
+
+const data = {
+    arrahman:{
+        cover:"musicplayerimg/ar.jpeg",
+        songs:[
+            "songs/arrahman/anbe.mp3",
+            "songs/arrahman/enodu.mp3","songs/arrahman/mearsal.mp3",
+            "songs/arrahman/ladio.mp3","songs/arrahman/pookaley.mp3"
+        ]
+    },
+    aniruth:{
+        cover:"musicplayerimg/aniruth.jpeg",
+        songs:[
+            "songs/aniruth/don.mp3","songs/aniruth/aathi.mp3",
+            "songs/aniruth/ethirneechal.mp3","songs/aniruth/krk.mp3",
+            "songs/aniruth/maankarate.mp3"
+        ]
+    },
+    sidsriram:{
+        cover:"musicplayerimg/sriram.jpeg",
+        songs:[
+            "songs/sidsriram/kadhaipoma.mp3","songs/sidsriram/mersal.mp3",
+            "songs/sidsriram/muthal.mp3","songs/sidsriram/pularatha.mp3",
+            "songs/sidsriram/theethiriyai.mp3"
+        ]
+    },
+    chinmayi:{
+        cover:"musicplayerimg/chinmayi.jpeg",
+        songs:[
+            "songs/chinmayi/naan.mp3","songs/chinmayi/mazhlai.mp3",
+            "songs/chinmayi/varayo.mp3","songs/chinmayi/seemaraja.mp3",
+            "songs/chinmayi/yennai.mp3"
+        ]
+    }
+};
+
+
+document.getElementById("albumTitle").innerText = album.toUpperCase()+" ALBUM";
+document.getElementById("albumArt").src = data[album].cover;
+
+let songs = data[album].songs;
+let player = document.getElementById("player");
+let progress = document.getElementById("progress");
+let current = 0;
+
+
+songs.forEach((s,i)=>{
+    let btn=document.createElement("button");
+    btn.innerText="Song "+(i+1);
+    btn.onclick=()=> loadSong(i,true);
+    document.getElementById("songList").appendChild(btn);
+});
+
+
+function mark(){
+    document.querySelectorAll(".song-list button").forEach((b,i)=>{
+        b.classList.toggle("active",i===current);
+    })
+}
+
+
+function loadSong(i,play=false){
+    current=i; player.src=songs[i];
+    if(play) player.play();
+    mark();
+    document.getElementById("albumArt").classList.add("playing");
+}
+
+
+function togglePlay(){
+    if(player.paused){ player.play(); document.getElementById("ppBtn").innerText="⏸"; }
+    else{ player.pause(); document.getElementById("ppBtn").innerText="▶"; }
+}
+
+function nextSong(){ current=(current+1)%songs.length; loadSong(current,true); }
+function prevSong(){ current=(current-1+songs.length)%songs.length; loadSong(current,true); }
+
+
+player.ontimeupdate=()=>{
+    progress.value = (player.currentTime/player.duration)*100;
+};
+progress.oninput=()=>{
+    player.currentTime = (progress.value/100)*player.duration;
+};
+
+
+volume.oninput=()=> player.volume=volume.value;
+
+
+player.onended=()=> nextSong();
+
+loadSong(0);
+</script>
+
+</body>
+</html>
